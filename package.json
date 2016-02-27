@@ -2,10 +2,14 @@
   "name": "antsim",
   "version": "1.0.0",
   "description": "small speech controlled ant simulation",
-  "main": "index.js",
+  "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "three": "^0.74.0",
+    "three-orbit-controls": "^72.0.0"
+  }
 }
