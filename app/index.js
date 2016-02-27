@@ -42,8 +42,8 @@ ssaoPass.uniforms["tDepth"].value = depthRenderTarget;
 ssaoPass.uniforms['size'].value.set(window.innerWidth, window.innerHeight);
 ssaoPass.uniforms['cameraNear'].value = camera.near;
 ssaoPass.uniforms['cameraFar'].value = camera.far;
-ssaoPass.uniforms['aoClamp'].value = 0.3;
-ssaoPass.uniforms['lumInfluence'].value = 0.5;
+ssaoPass.uniforms['aoClamp'].value = 0.6;
+ssaoPass.uniforms['lumInfluence'].value = 0.2;
  
 effectComposer = new EffectComposer(renderer);
 effectComposer.addPass(renderPass);
