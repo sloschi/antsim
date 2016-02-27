@@ -139,7 +139,7 @@ function render() {
     renderer.render(scene, camera);
     
     elapsedTime += clock.getDelta();
-    if (elapsedTime > 1) {
+    if (elapsedTime > 0.1) {
         elapsedTime = 0;
         moveAnts();
     }
