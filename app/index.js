@@ -88,7 +88,7 @@ function createWorld(config) {
     // add hives
     for (let i = 0; i < config.numHives; i++) {
         let hive = createHive({ color: HiveColors[i] }),
-            pos = config.size / 4,
+            pos = (config.size / 4) + 0.5,
             hivePos;
 
         if (i === 0) {

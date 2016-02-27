@@ -6,6 +6,7 @@ function Ant(world, config, antModel) {
     let model = antModel;
     
     antModel.position.copy(position);
+    antModel.position.y = 0.5;
 
     let probabilities = {
         north: 0.25,
