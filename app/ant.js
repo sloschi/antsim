@@ -4,6 +4,9 @@ function Ant(world, config, antModel) {
     let position = config.position;
     
     let model = antModel;
+    
+    antModel.position.copy(position);
+    antModel.position.y = 0.5;
 
     let probabilities = {
         north: 0.25,
@@ -13,10 +16,10 @@ function Ant(world, config, antModel) {
     }
 
     function createProbabilityStack(probs) {
-        let north = probs.north,
-            east = north + probs.east,
-            south = east + probs.south,
-            west = south + probs.west;
+        let north = 0,
+            east = north + probs.north,
+            south = east + probs.east,
+            west = south + probs.south;
 
         return {
             north: north,
@@ -24,6 +27,10 @@ function Ant(world, config, antModel) {
             south: south,
             west: west
         }
+    }
+
+    function getModel() {
+        return model;
     }
 
     const moveMap = {
@@ -80,6 +87,8 @@ function Ant(world, config, antModel) {
 
     function move() {
         position = calculateNewPosition();
+        
+        antModel.position.copy(position);
 
         return {
             newPosition: position,
@@ -92,8 +101,9 @@ function Ant(world, config, antModel) {
     }
 
     return {
+        getModel: getModel,
         move: move
     }
 }
 
-module.export = Ant;
+module.exports = Ant;

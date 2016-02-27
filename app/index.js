@@ -3,8 +3,12 @@
 const THREE = require('three');
 const OrbitControls = require('three-orbit-controls')(THREE)
 
+const Ant = require('./app/ant');
+
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+var clock = new THREE.Clock();
 
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -58,9 +62,10 @@ function createHive(config) {
 function createAnt(config) {
     var geometry = new THREE.BoxGeometry(1, 1, 1);
     var material = new THREE.MeshBasicMaterial({ color: config.color });
-    var ant = new THREE.Mesh(geometry, material);
-    ant.rotation.x += Math.PI / 2;
-    return ant;
+    var antModel = new THREE.Mesh(geometry, material);
+    antModel.rotation.x += Math.PI / 2;
+    
+    return new Ant({size: 100}, config, antModel);
 }
 
 /**
@@ -83,7 +88,7 @@ function createWorld(config) {
     // add hives
     for (let i = 0; i < config.numHives; i++) {
         let hive = createHive({ color: HiveColors[i] }),
-            pos = config.size / 4,
+            pos = (config.size / 4) + 0.5,
             hivePos;
 
         if (i === 0) {
@@ -107,22 +112,37 @@ function createWorld(config) {
         scene.add(hive);
 
         for (let j = 0; j < 20; j++) {
-            let ant = createAnt({ color: AntColors[HiveColors[i].name] }),
-                rows = 4;
-            let antPosition = new THREE.Vector3(hivePos.x, 0.5, hivePos.z - j);
-            ant.position.copy(antPosition);
-            scene.add(ant);
+            let ant = createAnt({ color: AntColors[HiveColors[i].name] , position: hivePos});
+            scene.add(ant.getModel());
+            
+            ants.push(ant);
         }
     }
 
+    var axisHelper = new THREE.AxisHelper( 5 ); scene.add( axisHelper );
+
     camera.lookAt(grid);
 }
+
+
+function moveAnts() {
+    ants.forEach(ant => ant.move());
+}
+
+let elapsedTime = 0;
+clock.start();
 
 function render() {
     requestAnimationFrame(render);
 
     controls.update();
     renderer.render(scene, camera);
+    
+    elapsedTime += clock.getDelta();
+    if (elapsedTime > 1) {
+        elapsedTime = 0;
+        moveAnts();
+    }
 }
 
 createWorld({ size: 100, numHives: 2 });
