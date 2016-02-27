@@ -1,7 +1,10 @@
 'use strict';
 
 const THREE = require('three');
-const OrbitControls = require('three-orbit-controls')(THREE)
+const OrbitControls = require('three-orbit-controls')(THREE);
+const EffectComposer = require('three-effectcomposer')(THREE);
+const SSAOShader = require('./app/postprocessing/ssaoshader');
+const FXAAShader = require('three-shader-fxaa')(THREE);
 
 const Ant = require('./app/ant');
 
@@ -10,9 +13,41 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 
 var clock = new THREE.Clock();
 
-var renderer = new THREE.WebGLRenderer();
+var renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+// post processing
+var depthMaterial, effectComposer, depthRenderTarget;
+var ssaoPass;
+var renderPass = new EffectComposer.RenderPass(scene, camera);
+var depthShader = THREE.ShaderLib['depthRGBA'];
+var depthUniforms = THREE.UniformsUtils.clone(depthShader.uniforms);
+depthMaterial = new THREE.ShaderMaterial({
+    fragmentShader: depthShader.fragmentShader,
+    vertexShader: depthShader.vertexShader,
+    uniforms: depthUniforms,
+    blending: THREE.NoBlending
+});
+var pars = {
+    minFilter: THREE.LinearFilter,
+    magFilteR: THREE.LinearFilter
+};
+depthRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+
+// ssao pass
+ssaoPass = new EffectComposer.ShaderPass(SSAOShader);
+ssaoPass.renderToScreen = true;
+ssaoPass.uniforms["tDepth"].value = depthRenderTarget;
+ssaoPass.uniforms['size'].value.set(window.innerWidth, window.innerHeight);
+ssaoPass.uniforms['cameraNear'].value = camera.near;
+ssaoPass.uniforms['cameraFar'].value = camera.far;
+ssaoPass.uniforms['aoClamp'].value = 0.3;
+ssaoPass.uniforms['lumInfluence'].value = 0.5;
+ 
+effectComposer = new EffectComposer(renderer);
+effectComposer.addPass(renderPass);
+effectComposer.addPass(ssaoPass);
 
 var controls = new OrbitControls(camera, renderer.domElement);
 
@@ -21,9 +56,8 @@ var hives = [];
 var foodSources = [];
 var spiders = [];
 
-
 camera.position.z = 5;
-camera.position.y = 20;
+camera.position.y = 40;
 camera.rotation.x += Math.PI / 2;
 
 const HiveColors = [
@@ -64,8 +98,8 @@ function createAnt(config) {
     var material = new THREE.MeshBasicMaterial({ color: config.color });
     var antModel = new THREE.Mesh(geometry, material);
     antModel.rotation.x += Math.PI / 2;
-    
-    return new Ant({size: 100}, config, antModel);
+
+    return new Ant({ size: 100 }, config, antModel);
 }
 
 /**
@@ -75,9 +109,9 @@ function createAnt(config) {
  * @param config.numHives - The number of hives in the world.
  */
 function createWorld(config) {
-    const grid = new THREE.GridHelper(config.size / 2, 1);
-    grid.position.y += 0.1;
-    scene.add(grid);
+    // const grid = new THREE.GridHelper(config.size / 2, 1);
+    // grid.position.y += 0.1;
+    // scene.add(grid);
 
     var geometry = new THREE.PlaneGeometry(config.size, config.size, 1);
     var material = new THREE.MeshBasicMaterial({ color: 0x795548, side: THREE.DoubleSide });
@@ -106,22 +140,22 @@ function createWorld(config) {
         if (i === 3) {
             hivePos = new THREE.Vector3(pos, 1, pos);
         }
-        
+
         hive.position.copy(hivePos);
 
         scene.add(hive);
 
         for (let j = 0; j < 20; j++) {
-            let ant = createAnt({ color: AntColors[HiveColors[i].name] , position: hivePos});
+            let ant = createAnt({ color: AntColors[HiveColors[i].name], position: hivePos });
             scene.add(ant.getModel());
-            
+
             ants.push(ant);
         }
     }
 
-    var axisHelper = new THREE.AxisHelper( 5 ); scene.add( axisHelper );
+    // var axisHelper = new THREE.AxisHelper(5); scene.add(axisHelper);
 
-    camera.lookAt(grid);
+    camera.lookAt(ground);
 }
 
 
@@ -136,10 +170,17 @@ function render() {
     requestAnimationFrame(render);
 
     controls.update();
-    renderer.render(scene, camera);
     
+    // Render depth into depthRenderTarget
+    scene.overrideMaterial = depthMaterial;
+    renderer.render(scene, camera, depthRenderTarget, true);
+
+    // Render renderPass and SSAO shaderPass
+    scene.overrideMaterial = null;
+    effectComposer.render();
+
     elapsedTime += clock.getDelta();
-    if (elapsedTime > 1) {
+    if (elapsedTime > 0.25) {
         elapsedTime = 0;
         moveAnts();
     }

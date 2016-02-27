@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "three": "^0.74.0",
-    "three-orbit-controls": "^72.0.0"
+    "three-effectcomposer": "0.0.1",
+    "three-orbit-controls": "^72.0.0",
+    "three-shader-fxaa": "^5.0.2"
   }
 }
