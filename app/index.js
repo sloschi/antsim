@@ -4,7 +4,7 @@ const THREE = require('three');
 const OrbitControls = require('three-orbit-controls')(THREE);
 const EffectComposer = require('three-effectcomposer')(THREE);
 const SSAOShader = require('./app/postprocessing/ssaoshader');
-const FXAAShader = require('three-shader-fxaa')(THREE);
+//const FXAAShader = require('three-shader-fxaa')(THREE);
 
 const Ant = require('./app/ant');
 
@@ -158,9 +158,49 @@ function createWorld(config) {
     camera.lookAt(ground);
 }
 
+var influence = {
+        north: false,
+        east: false,
+        south: false,
+        west: false
+    };
+
+var io = require('socket.io-client');
+var socket = io('http://antsim.azurewebsites.net');
+
+socket.on('go north', function () {
+    influence.north = !influence.north;
+    logInfluenceChange();
+});
+
+socket.on('go south', function () {
+    influence.south = !influence.south;
+    logInfluenceChange();
+});
+socket.on('go east', function () {
+    influence.east = !influence.east;
+    logInfluenceChange();
+});
+socket.on('go west', function () {
+    influence.west = !influence.west;
+    logInfluenceChange();
+});
+socket.on('go random', function () {
+    influence = {
+        north: false,
+        east: false,
+        south: false,
+        west: false
+    };
+    logInfluenceChange();
+});
+
+function logInfluenceChange() {
+    console.log('influence changed', influence);
+}
 
 function moveAnts() {
-    ants.forEach(ant => ant.move());
+    ants.forEach(ant => ant.move(influence));
 }
 
 let elapsedTime = 0;

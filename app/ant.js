@@ -17,7 +17,7 @@ function Ant(world, config, antModel) {
         west: 0.25
     }
 
-    function createProbabilityStack(probs) {
+    function createProbabilityStack(probs, influence) {
         let northInfluence = 0, 
         eastInfluence = 0, 
         southInfluence = 0, 
@@ -39,8 +39,7 @@ function Ant(world, config, antModel) {
                     break;
             }
         });
-        
-        let influence = {north: true, east: true};
+
         if(influence.north) {
             northInfluence += 10;
         }
@@ -96,9 +95,9 @@ function Ant(world, config, antModel) {
         };
     }
 
-    function calculateNewPosition() {
+    function calculateNewPosition(directionsOfInterest) {
         let dirProb = Math.random();        
-        let probs = createProbabilityStack(probabilities);
+        let probs = createProbabilityStack(probabilities, directionsOfInterest);
         let direction = { x: 0, y: 0, z: 0 };
         let dirName = '';
 
@@ -138,8 +137,8 @@ function Ant(world, config, antModel) {
             return newPos;
     }
 
-    function move() {
-        position = calculateNewPosition();
+    function move(directionsOfInterest) {
+        position = calculateNewPosition(directionsOfInterest);
         
         antModel.position.copy(position);
 

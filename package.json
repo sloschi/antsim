@@ -12,6 +12,7 @@
     "three": "^0.74.0",
     "three-effectcomposer": "0.0.1",
     "three-orbit-controls": "^72.0.0",
+    "socket.io-client": "1.4.5",
     "three-shader-fxaa": "^5.0.2"
   }
 }
