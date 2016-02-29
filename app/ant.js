@@ -3,11 +3,11 @@ function Ant(world, config, antModel) {
 
     let position = config.position;
     position.y = 0.5;
-    
+
     let model = antModel;
-    
+
     let directionHistory = new Array();;
-    
+
     antModel.position.copy(position);
 
     let probabilities = {
@@ -18,55 +18,46 @@ function Ant(world, config, antModel) {
     }
 
     function createProbabilityStack(probs, influence) {
-        let northInfluence = 0, 
-        eastInfluence = 0, 
-        southInfluence = 0, 
-        westInfluence = 0;
-        
-        directionHistory.forEach(function (direction, index) {
-            switch(direction) {
-                case 'north':
-                    northInfluence += directionHistory.length - (index - (directionHistory.length/2));
-                    break;
-                case 'east':
-                    eastInfluence += directionHistory.length - (index - (directionHistory.length/2));
-                    break;
-                case 'south':
-                    southInfluence += directionHistory.length - (index - (directionHistory.length/2));
-                    break;
-                case 'west':
-                    westInfluence += directionHistory.length - (index - (directionHistory.length/2));
-                    break;
-            }
-        });
+        let northInfluence = 0,
+            eastInfluence = 0,
+            southInfluence = 0,
+            westInfluence = 0;
 
-        if(influence.north) {
-            northInfluence += 10;
+        if (influence.north) {
+            northInfluence += 5;
         }
-        if(influence.east) {
-            eastInfluence += 10;
+        if (influence.east) {
+            eastInfluence += 5;
         }
-        if(influence.south) {
-            southInfluence += 10;
+        if (influence.south) {
+            southInfluence += 5;
         }
-        if(influence.west) {
-            westInfluence += 10;
+        if (influence.west) {
+            westInfluence += 5;
         }
-        
+
         let sum = northInfluence + eastInfluence + southInfluence + westInfluence;
-        northInfluence /= sum;
-        eastInfluence /= sum;
-        southInfluence /= sum;
-        westInfluence /= sum;
-        
+        if (sum === 0) {
+            northInfluence = 0.25;
+            eastInfluence = 0.25;
+            southInfluence = 0.25;
+            westInfluence = 0.25;
+        } else {
+            northInfluence /= sum;
+            eastInfluence /= sum;
+            southInfluence /= sum;
+            westInfluence /= sum;
+        }
+
+
         let randomWeighter = 9;
-        let randomWeight = 1;
+        let randomWeight = 7;
         let influencedWeight = randomWeighter - randomWeight;
-        
+
         let north = 0,
-            east = north + randomWeight * probs.north/randomWeighter + influencedWeight*northInfluence/randomWeighter,
-            south = east + randomWeight * probs.east/randomWeighter + influencedWeight*eastInfluence/randomWeighter,
-            west = south + randomWeight * probs.south/randomWeighter + influencedWeight*southInfluence/randomWeighter;
+            east = north + randomWeight * probs.north / randomWeighter + influencedWeight * northInfluence / randomWeighter,
+            south = east + randomWeight * probs.east / randomWeighter + influencedWeight * eastInfluence / randomWeighter,
+            west = south + randomWeight * probs.south / randomWeighter + influencedWeight * southInfluence / randomWeighter;
 
         return {
             north: north,
@@ -81,9 +72,9 @@ function Ant(world, config, antModel) {
     }
 
     const moveMap = {
-        north: { x: 0, y: 0, z: 1 },
+        north: { x: 0, y: 0, z: -1 },
         east: { x: 1, y: 0, z: 0 },
-        south: { x: 0, y: 0, z: -1 },
+        south: { x: 0, y: 0, z: 1 },
         west: { x: -1, y: 0, z: 0 },
     }
 
@@ -96,7 +87,7 @@ function Ant(world, config, antModel) {
     }
 
     function calculateNewPosition(directionsOfInterest) {
-        let dirProb = Math.random();        
+        let dirProb = Math.random();
         let probs = createProbabilityStack(probabilities, directionsOfInterest);
         let direction = { x: 0, y: 0, z: 0 };
         let dirName = '';
@@ -107,39 +98,39 @@ function Ant(world, config, antModel) {
                 dirName = dir;
             }
         });
-        
+
         directionHistory.push(dirName);
-        if(directionHistory.length > 10) {
+        if (directionHistory.length > 10) {
             directionHistory.shift();
         }
-        
-        
+
+
         let newPos = applyDirection(position, direction);
-        
-        if (newPos.x > world.size / 2 
-            || newPos.z > world.size / 2 
-            || newPos.x < -world.size / 2 
+
+        if (newPos.x > world.size / 2
+            || newPos.z > world.size / 2
+            || newPos.x < -world.size / 2
             || newPos.z < -world.size / 2) {
-                let newDir = '';
-                if (dirName === 'north') {
-                    newDir = 'south';
-                } else if (dirName === 'south') {
-                    newDir = 'north';
-                } else if (dirName === 'east') {
-                    newDir = 'west';
-                } else {
-                    newDir = 'east';
-                }
-                
-                newPos = applyDirection(position, moveMap[newDir]);
+            let newDir = '';
+            if (dirName === 'north') {
+                newDir = 'south';
+            } else if (dirName === 'south') {
+                newDir = 'north';
+            } else if (dirName === 'east') {
+                newDir = 'west';
+            } else {
+                newDir = 'east';
             }
-            
-            return newPos;
+
+            newPos = applyDirection(position, moveMap[newDir]);
+        }
+
+        return newPos;
     }
 
     function move(directionsOfInterest) {
         position = calculateNewPosition(directionsOfInterest);
-        
+
         antModel.position.copy(position);
 
         return {

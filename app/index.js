@@ -50,6 +50,7 @@ effectComposer.addPass(renderPass);
 effectComposer.addPass(ssaoPass);
 
 var controls = new OrbitControls(camera, renderer.domElement);
+controls.enableRotate = false;
 
 var ants = [];
 var hives = [];
@@ -145,7 +146,7 @@ function createWorld(config) {
 
         scene.add(hive);
 
-        for (let j = 0; j < 20; j++) {
+        for (let j = 0; j < 100; j++) {
             let ant = createAnt({ color: AntColors[HiveColors[i].name], position: hivePos });
             scene.add(ant.getModel());
 
@@ -166,7 +167,7 @@ var influence = {
     };
 
 var io = require('socket.io-client');
-var socket = io('http://antsim.azurewebsites.net');
+var socket = io.connect('http://antsim.azurewebsites.net');
 
 socket.on('go north', function () {
     influence.north = !influence.north;
@@ -188,7 +189,7 @@ socket.on('go west', function () {
 socket.on('go random', function () {
     influence = {
         north: false,
-        east: false,
+        east: false,    
         south: false,
         west: false
     };
@@ -220,7 +221,7 @@ function render() {
     effectComposer.render();
 
     elapsedTime += clock.getDelta();
-    if (elapsedTime > 0.25) {
+    if (elapsedTime > 0.1) {
         elapsedTime = 0;
         moveAnts();
     }
